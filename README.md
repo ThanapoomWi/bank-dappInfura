@@ -1,4 +1,3 @@
-[README (1).md](https://github.com/user-attachments/files/34361919/README.1.md)
 # 🏦 Bank DApp × Infura
 
 เว็บแอปพลิเคชันแบบกระจายศูนย์ (DApp) สำหรับ **ฝากเงิน / ถอนเงิน / ตรวจสอบยอดเงิน** ผ่าน Smart Contract บน Ethereum Testnet

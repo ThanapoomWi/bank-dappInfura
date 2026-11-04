@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bank DApp (Infura) — Tanapoom Witrankronkoon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #171a21;
+      --line: #262b36;
+      --text: #e8eaf0;
+      --muted: #8b93a7;
+      --accent: #f6851b;
+      /* MetaMask orange */
+      --infura: #ff6b4a;
+      /* Infura red-orange */
+      --accent-2: #3b82f6;
+      --ok: #22c55e;
+      --err: #ef4444;
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans Thai", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin: 0 0 4px;
+      letter-spacing: -0.02em;
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .student {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .student b {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 720px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .card.full {
+      grid-column: 1 / -1;
+    }
+
+    .card h2 {
+      font-size: 15px;
+      margin: 0 0 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .step {
+      display: inline-grid;
+      place-items: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--line);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .step.done {
+      background: var(--ok);
+      color: #0b1a10;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 99px;
+      background: #0d0f13;
+      border: 1px solid var(--line);
+      color: var(--muted);
+    }
+
+    .pill .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+
+    .pill.on {
+      color: var(--ok);
+    }
+
+    .pill.on .dot {
+      background: var(--ok);
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, .18);
+    }
+
+    .pill.off {
+      color: var(--err);
+    }
+
+    .pill.off .dot {
+      background: var(--err);
+    }
+
+    label {
+      font-size: 13px;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #0d0f13;
+      color: var(--text);
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 14px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent-2);
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .row>div {
+      flex: 1;
+    }
+
+    button {
+      padding: 11px 16px;
+      border-radius: 10px;
+      border: 0;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      background: var(--accent-2);
+      color: #fff;
+      transition: opacity .15s, transform .05s;
+    }
+
+    button:hover:not(:disabled) {
+      opacity: .88;
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    button:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    button.mm {
+      background: var(--accent);
+      color: #1a0e00;
+    }
+
+    button.ghost {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--text);
+    }
+
+    .kv {
+      font-size: 13px;
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 6px 10px;
+      margin-top: 14px;
+    }
+
+    .kv span:nth-child(odd) {
+      color: var(--muted);
+    }
+
+    .mono {
+      font-family: "IBM Plex Mono", monospace;
+      word-break: break-all;
+    }
+
+    .balance {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 34px;
+      font-weight: 500;
+      margin: 6px 0 14px;
+      letter-spacing: -0.02em;
+    }
+
+    .balance small {
+      font-size: 16px;
+      color: var(--muted);
+    }
+
+    #status {
+      margin-top: 16px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      background: #0d0f13;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      min-height: 46px;
+    }
+
+    #status.ok {
+      border-color: color-mix(in srgb, var(--ok) 50%, var(--line));
+      color: var(--ok);
+    }
+
+    #status.err {
+      border-color: color-mix(in srgb, var(--err) 50%, var(--line));
+      color: var(--err);
+    }
+
+    #status a {
+      color: inherit;
+    }
+
+    footer {
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>🏦 Bank DApp <span style="color:var(--infura)">× Infura</span></h1>
+        <div class="sub">ฝาก / ถอน / ตรวจสอบยอดเงิน — อ่านข้อมูลผ่าน Infura RPC (<span id="netName">Hoodi</span>),
+          เซ็นธุรกรรมด้วย MetaMask</div>
+      </div>
+      <div class="student">
+        รหัสนักศึกษา: <b id="studentId">6XXXXXXXXX</b><br />
+        ชื่อ-สกุล: <b>Tanapoom Witrankronkoon</b>
+      </div>
+    </header>
+
+    <div class="grid">
+
+      <!-- 1. Infura -->
+      <section class="card">
+        <h2><span class="step" id="step1">1</span> เชื่อมต่อ Infura + Smart Contract
+          <span class="pill" id="infuraPill" style="margin-left:auto"><span class="dot"></span><span
+              id="infuraPillText">กำลังเชื่อมต่อ</span></span>
+        </h2>
+        <div class="kv">
+          <span>RPC</span><span class="mono" id="rpcInfo">—</span>
+          <span>API Key</span><span class="mono" id="apiKey"></span>
+          <span>Network</span><span id="network">—</span>
+          <span>Latest block</span><span class="mono" id="blockNo">—</span>
+          <span>Contract</span><span class="mono" id="contractInfo">—</span>
+          <!-- <span>ETH ใน Contract</span><span class="mono" id="contractEth">—</span> -->
+        </div>
+      </section>
+
+      <!-- 2. MetaMask -->
+      <section class="card">
+        <h2><span class="step" id="step2">2</span> เชื่อมต่อ MetaMask</h2>
+        <button class="mm" id="btnConnectWallet">🦊 Connect MetaMask</button>
+        <div class="kv">
+          <span>Account</span><span class="mono" id="account">—</span>
+          <span>Wallet ETH</span><span class="mono" id="walletBal">—</span>
+          <span>Deployed by</span><span class="mono" id="ownerInfo">—</span>
+        </div>
+      </section>
+
+      <!-- 3. Balance -->
+      <section class="card full">
+        <h2><span class="step">3</span> ยอดเงินในธนาคาร (checkBlance ผ่าน Infura)</h2>
+        <div class="balance"><span id="bankBal">—</span> <small>ETH</small></div>
+        <button class="ghost" id="btnCheck" disabled>🔄 Check Balance</button>
+      </section>
+
+      <!-- 4. Deposit -->
+      <section class="card">
+        <h2><span class="step">4</span> ฝากเงิน (Deposit)</h2>
+        <label for="depAmt">จำนวน (ETH)</label>
+        <div class="row">
+          <div><input id="depAmt" type="number" min="0" step="0.0001" placeholder="0.01" /></div>
+          <button id="btnDeposit" disabled>Deposit</button>
+        </div>
+      </section>
+
+      <!-- 5. Withdraw -->
+      <section class="card">
+        <h2><span class="step">5</span> ถอนเงิน (Withdraw)</h2>
+        <label for="wdAmt">จำนวน (ETH)</label>
+        <div class="row">
+          <div><input id="wdAmt" type="number" min="0" step="0.0001" placeholder="0.01" /></div>
+          <button id="btnWithdraw" disabled>Withdraw</button>
+        </div>
+      </section>
+
+      <!-- Status -->
+      <section class="card full">
+        <h2>สถานะ</h2>
+        <div id="status">กำลังเชื่อมต่อ Infura…</div>
+      </section>
+
+    </div>
+
+    <footer>Bank DApp · Infura · ethers.js v6 · MetaMask</footer>
+  </div>
+
+  <script>
+    // ====== ตั้งค่า ======
+    // API Key จาก https://developer.metamask.io (Infura) → สร้าง API key → เปิด Hoodi
+    const INFURA_API_KEY = "d5055c8ecab14ee8a7b6f72e5227b488";
+    // เลือก network: NETWORKS.hoodi หรือ NETWORKS.sepolia (API key ต้องเปิด network นั้นไว้ใน Infura)
+    const NETWORKS = {
+      hoodi: {
+        name: "Hoodi Testnet", chainId: 560048, infuraHost: "hoodi.infura.io",
+        explorer: "https://hoodi.etherscan.io"
+      },
+      sepolia: {
+        name: "Sepolia Testnet", chainId: 11155111, infuraHost: "sepolia.infura.io",
+        explorer: "https://sepolia.etherscan.io"
+      }
+    };
+    const NET = NETWORKS.hoodi;
+    const CHAIN_ID = NET.chainId;
+    const INFURA_URL = `https://${NET.infuraHost}/v3/${INFURA_API_KEY}`;
+
+    // address ของ contract ที่ deploy บน network ข้างบน (deploy บน Hoodi ใหม่แล้วใส่ตรงนี้)
+    const CONTRACT_ADDRESS = "0xFeC3b089CDc3da263D529a9BFb2daC1c92d272Fb";
+    const OWNER_ADDRESS = "0x5DF75cf84572ce119A90fC274d4AECCb50eaDDee";
+
+    // ABI ของ contract Bank (ตามที่โจทย์กำหนด)
+    const ABI = [
+      "function deposit() payable",
+      "function withdraw(uint amount)",
+      "function checkBlance() view returns (uint balance)",
+      "event Deposit(address indexed owner, uint amount)",
+      "event Withdraw(address indexed owner, uint amount)"
+    ];
+    const EXPLORER = NET.explorer;
+
+    // infura = อ่านข้อมูล / รอผลธุรกรรม, wallet = เซ็นธุรกรรมด้วย MetaMask
+    let infura, readContract, walletProvider, signer, writeContract, account;
+    const $ = (id) => document.getElementById(id);
+
+    // ---------- helpers ----------
+    function setStatus(html, type = "") {
+      const s = $("status");
+      s.className = type;
+      s.innerHTML = html;
+    }
+    function short(addr) { return addr ? addr.slice(0, 6) + "…" + addr.slice(-4) : "—"; }
+    function txLink(hash) {
+      return `<a href="${EXPLORER}/tx/${hash}" target="_blank" rel="noopener">${hash.slice(0, 10)}…</a>`;
+    }
+    function errMsg(e) {
+      if (e?.code === "ACTION_REJECTED" || e?.code === 4001) return "ผู้ใช้ยกเลิกรายการใน MetaMask";
+      return e?.reason || e?.revert?.args?.[0] || e?.info?.error?.message ||
+        e?.shortMessage || e?.message || String(e);
+    }
+    function setInfuraPill(state, text) {
+      $("infuraPill").className = "pill " + state;
+      $("infuraPillText").textContent = text;
+    }
+    function setBusy(busy) {
+      const canRead = !!readContract && !!account;
+      const canWrite = canRead && !!writeContract;
+      $("btnCheck").disabled = busy || !canRead;
+      $("btnDeposit").disabled = busy || !canWrite;
+      $("btnWithdraw").disabled = busy || !canWrite;
+    }
+    const fmt = (wei, d = 6) => Number(ethers.formatEther(wei)).toFixed(d).replace(/\.?0+$/, "") || "0";
+
+    // ---------- 1. Infura + Contract ----------
+    async function connectInfura() {
+      $("rpcInfo").textContent = NET.infuraHost + "/v3/" + (INFURA_API_KEY.length > 8 ? INFURA_API_KEY.slice(0, 4) + "…" : "—");
+      $("apiKey").textContent = INFURA_API_KEY
+      if (!INFURA_API_KEY || INFURA_API_KEY === "YOUR_INFURA_API_KEY") {
+        setInfuraPill("off", "ไม่มี API key");
+        setStatus("ยังไม่ได้ใส่ INFURA_API_KEY ในโค้ด", "err");
+        return false;
+      }
+      if (!ethers.isAddress(CONTRACT_ADDRESS)) {
+        setInfuraPill("off", "ไม่มี contract");
+        setStatus(`ยังไม่ได้ใส่ CONTRACT_ADDRESS ของ ${NET.name} ในโค้ด`, "err");
+        return false;
+      }
+      try {
+        infura = new ethers.JsonRpcProvider(INFURA_URL, CHAIN_ID, { staticNetwork: true });
+        const block = await infura.getBlockNumber();
+        $("network").textContent = `${NET.name} (chainId ${CHAIN_ID})`;
+        $("blockNo").textContent = block;
+
+        const code = await infura.getCode(CONTRACT_ADDRESS);
+        if (code === "0x") {
+          setInfuraPill("on", "Infura OK");
+          setStatus(`เชื่อม Infura ได้ แต่ไม่พบ contract ที่ ${short(CONTRACT_ADDRESS)} บน ${NET.name}`, "err");
+          return false;
+        }
+        readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, infura);
+        $("contractInfo").textContent = CONTRACT_ADDRESS;
+
+        setInfuraPill("on", "Connected");
+        $("step1").classList.add("done");
+        setStatus("เชื่อมต่อ Infura และ Smart Contract สำเร็จ — กำลังเชื่อมต่อ MetaMask…", "ok");
+
+        // อัปเดตเลข block ล่าสุดจาก Infura ทุก 12 วินาที
+        setInterval(async () => {
+          try { $("blockNo").textContent = await infura.getBlockNumber(); setInfuraPill("on", "Connected"); }
+          catch { setInfuraPill("off", "หลุดการเชื่อมต่อ"); }
+        }, 12000);
+        return true;
+      } catch (e) {
+        setInfuraPill("off", "เชื่อมต่อไม่ได้");
+        setStatus("เชื่อมต่อ Infura ไม่สำเร็จ: " + errMsg(e) + " — ตรวจสอบ API key และว่าเปิด " + NET.name + " ไว้ใน Infura", "err");
+        return false;
+      }
+    }
+
+
+    // ---------- 2. MetaMask ----------
+    async function connectWallet() {
+      if (!window.ethereum) {
+        setStatus('ไม่พบ MetaMask — กรุณาติดตั้งจาก <a href="https://metamask.io/download/" target="_blank">metamask.io</a> (ยังดูข้อมูล contract ผ่าน Infura ได้)', "err");
+        return;
+      }
+      try {
+        walletProvider = new ethers.BrowserProvider(window.ethereum);
+        const existing = await walletProvider.send("eth_accounts", []);
+        if (!existing.length) {
+          setStatus("กรุณากดอนุญาตการเชื่อมต่อใน MetaMask (ครั้งแรกครั้งเดียว)…");
+          await walletProvider.send("eth_requestAccounts", []);
+        }
+        signer = await walletProvider.getSigner();
+        account = await signer.getAddress();
+        $("account").textContent = account;
+        $("btnConnectWallet").textContent = "✅ Connected " + short(account);
+        $("step2").classList.add("done");
+
+        // MetaMask ต้องอยู่บน network เดียวกับ Infura ถึงจะเซ็นธุรกรรมได้
+        const walletChain = Number((await walletProvider.getNetwork()).chainId);
+        if (walletChain !== CHAIN_ID) {
+          setStatus(`MetaMask ไม่ได้อยู่บน ${NET.name} — กำลังขอสลับ network…`);
+          try {
+            await switchNetwork();
+            return;   // หน้าเว็บ reload เองจาก chainChanged
+          } catch (e) {
+            setStatus("สลับ network ไม่สำเร็จ: " + errMsg(e) + ` — กรุณาเลือก ${NET.name} ใน MetaMask เอง`, "err");
+          }
+        } else if (readContract) {
+          writeContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+        }
+
+        if (readContract) {
+          await refreshWalletBalance();
+          await checkBalance(true);
+          const isOwner = account.toLowerCase() === OWNER_ADDRESS.toLowerCase();
+          if (writeContract) {
+            setStatus("เชื่อมต่อ Infura, Smart Contract และ MetaMask อัตโนมัติสำเร็จ — พร้อมใช้งาน" +
+              (isOwner ? " (บัญชีผู้ deploy)" : " (ใช้บัญชีของคุณเอง ยอดเงินแยกตามบัญชี)"), "ok");
+          }
+        }
+        setBusy(false);
+      } catch (e) {
+        setStatus("เชื่อมต่อ MetaMask ไม่สำเร็จ: " + errMsg(e), "err");
+      }
+    }
+
+    // สลับ MetaMask ไป network ที่ตั้งไว้ ถ้ายังไม่มีใน MetaMask (error 4902) จะเพิ่มให้ก่อน
+    async function switchNetwork() {
+      const hexId = "0x" + CHAIN_ID.toString(16);
+      try {
+        await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hexId }] });
+      } catch (e) {
+        const code = e?.code ?? e?.data?.originalError?.code;
+        if (code !== 4902) throw e;
+        await window.ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [{
+            chainId: hexId,
+            chainName: NET.name,
+            nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+            rpcUrls: [INFURA_URL],
+            blockExplorerUrls: [NET.explorer]
+          }]
+        });
+      }
+    }
+
+    async function refreshWalletBalance() {
+      if (!infura || !account) return;
+      const bal = await infura.getBalance(account);   // อ่านผ่าน Infura
+      $("walletBal").textContent = fmt(bal) + " ETH";
+    }
+
+    // ---------- 3. CheckBlance (eth_call ผ่าน Infura โดยระบุ from = account) ----------
+    async function checkBalance(silent = false) {
+      if (!readContract || !account) return;
+      try {
+        const bal = await readContract.checkBlance({ from: account });
+        $("bankBal").textContent = ethers.formatEther(bal);
+        if (!silent) setStatus("อัปเดตยอดเงินจาก Infura แล้ว: " + ethers.formatEther(bal) + " ETH", "ok");
+      } catch (e) {
+        setStatus("ตรวจสอบยอดเงินไม่สำเร็จ: " + errMsg(e), "err");
+      }
+    }
+
+    // ---------- 4. Deposit ----------
+    async function deposit() {
+      const amt = $("depAmt").value.trim();
+      if (!amt || Number(amt) <= 0) { setStatus("กรุณาใส่จำนวนเงินที่มากกว่า 0", "err"); return; }
+      setBusy(true);
+      try {
+        setStatus("กรุณายืนยันรายการใน MetaMask…");
+        const tx = await writeContract.deposit({ value: ethers.parseEther(amt) });
+        setStatus("ส่งรายการแล้ว รอยืนยันผ่าน Infura… " + txLink(tx.hash));
+        await infura.waitForTransaction(tx.hash);
+        setStatus(`ฝากเงิน ${amt} ETH สำเร็จ ✔ ${txLink(tx.hash)}`, "ok");
+        $("depAmt").value = "";
+        await afterTx();
+      } catch (e) {
+        setStatus("ฝากเงินไม่สำเร็จ: " + errMsg(e), "err");
+      } finally { setBusy(false); }
+    }
+
+    // ---------- 5. Withdraw ----------
+    async function withdraw() {
+      const amt = $("wdAmt").value.trim();
+      if (!amt || Number(amt) <= 0) { setStatus("กรุณาใส่จำนวนเงินที่มากกว่า 0", "err"); return; }
+      setBusy(true);
+      try {
+        const wei = ethers.parseEther(amt);
+        const bal = await readContract.checkBlance({ from: account });
+        if (wei > bal) {
+          setStatus(`ยอดเงินไม่พอ (มี ${ethers.formatEther(bal)} ETH) — not enough money`, "err");
+          return;
+        }
+        setStatus("กรุณายืนยันรายการใน MetaMask…");
+        const tx = await writeContract.withdraw(wei);
+        setStatus("ส่งรายการแล้ว รอยืนยันผ่าน Infura… " + txLink(tx.hash));
+        await infura.waitForTransaction(tx.hash);
+        setStatus(`ถอนเงิน ${amt} ETH สำเร็จ ✔ ${txLink(tx.hash)}`, "ok");
+        $("wdAmt").value = "";
+        await afterTx();
+      } catch (e) {
+        setStatus("ถอนเงินไม่สำเร็จ: " + errMsg(e), "err");
+      } finally { setBusy(false); }
+    }
+
+    async function afterTx() {
+      await checkBalance(true);
+      await refreshWalletBalance();
+
+    }
+
+    // ---------- wire up ----------
+    $("ownerInfo").textContent = OWNER_ADDRESS;
+    $("netName").textContent = NET.name;
+    $("btnConnectWallet").onclick = connectWallet;
+    $("btnCheck").onclick = () => checkBalance(false);
+    $("btnDeposit").onclick = deposit;
+    $("btnWithdraw").onclick = withdraw;
+
+    if (window.ethereum) {
+      window.ethereum.on?.("accountsChanged", () => location.reload());
+      window.ethereum.on?.("chainChanged", () => location.reload());
+    }
+
+    // เปิดหน้าเว็บ → เชื่อม Infura + Contract → เชื่อม MetaMask อัตโนมัติ
+    window.addEventListener("load", async () => {
+      const ok = await connectInfura();
+      if (ok) await connectWallet();
+    });
+  </script>
+</body>
+
+</html>
